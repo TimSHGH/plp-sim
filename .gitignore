@@ -1,0 +1,17 @@
+.env
+.cache/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Raw API responses and derived tables are reproducible from scripts/.
+data/raw/
+data/interim/
+data/processed/
+
+# data/manual/ is deliberately NOT ignored: the hand-compiled nomination
+# dataset is work product and must be committed for the run to reproduce.
+
+.DS_Store

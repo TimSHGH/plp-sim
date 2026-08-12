@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artificial society under pressure</title>
+<style>
+/* Committed dark palette. Greyscale carries the mass; one accent carries the
+   exception, so the eye goes straight to the thing that is rare. */
+:root{
+  --bg:#0a0a0b; --ink:#f2f1ee; --ink2:#96968f; --ink3:#63635d; --line:#212124;
+  /* A diverging scale, because the three positions are ordered: for the leader,
+     neutral, against. Two hues either side of a genuinely neutral grey midpoint.
+     The blue is muted rather than saturated so the orange stays the loudest
+     thing on the page -- defection is the rare event worth looking for. */
+  --back:#7aa8cf;      /* backs the leader          */
+  --silent:#75787c;    /* says nothing -- the middle */
+  --exit:#ef7a53;      /* says the leader should go  */
+}
+*{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{margin:0;color:var(--ink);background:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,#1b1b1e 1px,transparent 0);
+  background-size:22px 22px;
+  font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Inter,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:44px 22px 72px}
+
+h1{font-size:30px;line-height:1.15;margin:0 0 10px;letter-spacing:-.025em;font-weight:500}
+h1 em{font-style:normal;color:var(--exit)}
+.sub{color:var(--ink2);margin:0 0 30px;max-width:60ch;font-size:15px}
+
+.q{font-size:13.5px;color:var(--ink2);max-width:88ch;margin:0 0 26px;
+  padding-left:13px;border-left:1px solid var(--line)}
+.q b{color:var(--ink);font-weight:500}
+
+.tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);overflow-x:auto;
+  scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none;background:none;border:0;border-bottom:1px solid transparent;
+  padding:0 0 12px;margin-bottom:-1px;font:inherit;font-size:13.5px;color:var(--ink3);
+  cursor:pointer;white-space:nowrap;transition:color .12s}
+.tab:hover{color:var(--ink2)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--exit)}
+.social{font-size:13px;color:var(--ink3);padding:18px 0 20px}
+
+.grid{display:grid;grid-template-columns:1fr 262px;gap:40px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:1fr;gap:26px}}
+figure{margin:0}
+svg.net{display:block;width:100%;height:auto}
+.edge{stroke:#5b606b;stroke-width:.8}
+.mark{cursor:pointer}
+
+h3{font-size:10px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink3);
+  margin:0 0 13px;font-weight:500}
+.side>div{margin-bottom:30px}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
+.row{align-items:flex-start}
+.row .lab{flex:1;color:var(--ink2);line-height:1.3}
+.row .lab em{display:block;font-style:normal;font-size:10.5px;color:var(--ink3);margin-top:2px}
+.row svg{margin-top:2px}
+.row .val{font-variant-numeric:tabular-nums;color:var(--ink)}
+
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);
+  font-weight:500;text-align:right;padding:0 0 8px 8px}
+th:first-child{text-align:left;padding-left:0;width:34%}
+td{padding:7px 0 7px 8px;border-top:1px solid var(--line);text-align:right;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+td:first-child{text-align:left;color:var(--ink2);padding-left:0;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+tr.obs td{color:var(--ink3)}
+.acc{color:var(--ink)}
+
+.hint{font-size:11.5px;color:var(--ink3);line-height:1.6;margin:0}
+
+.sizekey{display:flex;align-items:flex-end;gap:14px}
+.sizekey figure{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0}
+.sizekey span{font-size:10.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.sizekey .cap{font-size:11.5px;color:var(--ink3);line-height:1.45;margin:0 0 0 2px;flex:1}
+
+.bars{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+.bars .b+.b{margin-top:14px}
+.bars .cap{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:6px}
+.bars .cap .who{color:var(--ink)}
+.bars .cap .fig{color:var(--ink3);font-variant-numeric:tabular-nums}
+.bars .track{height:7px;display:flex;gap:2px}
+.bars .track i{display:block;height:100%}
+
+#tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .09s;z-index:9;
+  background:#141416;border:1px solid var(--line);border-radius:9px;padding:14px;width:250px}
+#tip .hd{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+#tip .badge{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:10.5px;letter-spacing:.02em;color:#0a0a0b;font-weight:600}
+#tip .nm{font-size:13px;color:var(--ink);line-height:1.25}
+#tip .rl{font-size:11px;color:var(--ink3)}
+#tip .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
+#tip .chip{font-size:10.5px;color:var(--ink2);border:1px solid var(--line);
+  border-radius:5px;padding:3px 7px;white-space:nowrap}
+#tip dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:11px}
+#tip dt{color:var(--ink3)}
+#tip dd{margin:0;text-align:right;color:var(--ink2);font-variant-numeric:tabular-nums}
+
+.notes{margin-top:46px;border-top:1px solid var(--line);padding-top:26px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+@media (max-width:1100px){.notes{grid-template-columns:1fr 1fr}}
+@media (max-width:880px){.notes{grid-template-columns:1fr;gap:24px}}
+.notes p{margin:0;font-size:13.5px;line-height:1.65;color:var(--ink2)}
+.notes b{color:var(--ink);font-weight:500}
+.notes .k{color:var(--exit)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>One hundred MPs, <em>four levels of pressure</em>.</h1>
+  <p class="sub">The same 100 personas, asked the same question four times. The only thing that
+  changes is how many colleagues have already spoken out.</p>
+
+  <p class="q"><b>Q.</b> <span id="qtext"></span></p>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <p class="social" id="social"></p>
+
+  <div class="grid">
+    <figure>
+      <svg class="net" id="net" viewBox="0 0 880 660" role="img"
+           aria-label="Network of 100 synthetic MPs; shade shows the position each takes, a hollow centre marks those holding a government post"></svg>
+      <div class="bars" id="bars"></div>
+    </figure>
+
+    <div class="side">
+      <div>
+        <h3>Position taken</h3>
+        <div id="legend"></div>
+      </div>
+      <div>
+        <h3>Accuracy by group</h3>
+        <table id="gtable"></table>
+      </div>
+      <div>
+        <h3>Reading it</h3>
+        <p class="hint">Each mark covers a different number of MPs, so counting dots is not the
+        same as reading a percentage. Every figure here is weighted. Lines join personas whose
+        real MPs voted together on the divisions where Labour split. Positions stay the same in
+        every view, so a mark that changes colour has changed its mind.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <p id="punch1"></p>
+    <p id="punch2"></p>
+    <p id="punch3"></p>
+  </div>
+</div>
+<div id="tip"></div>
+
+<script>
+const DATA=__DATA__;
+const COL={back:"var(--back)",silent:"var(--silent)",exit:"var(--exit)"};
+const RAW={back:"#7aa8cf",silent:"#75787c",exit:"#ef7a53"};
+const NAME={back:"Backs the leader",silent:"Says nothing",exit:"Says the leader should go"};
+const ORDER=["back","silent","exit"];
+let active=0;
+// "moved" is always measured against tab 1, never the last tab clicked -- otherwise
+// the mark would mean something different depending on the reader's path.
+const BASE=DATA.tabs[0].answer;
+const pct=v=>(v*100).toFixed(1)+"%";
+
+document.getElementById("qtext").textContent=DATA.item;
+
+// layout is computed once in Python and shared by every tab
+const W=880,H=660,PAD=34;
+const xs=DATA.nodes.map(n=>n.x), ys=DATA.nodes.map(n=>n.y);
+const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+const sx=v=>PAD+(v-x0)/((x1-x0)||1)*(W-2*PAD), sy=v=>PAD+(v-y0)/((y1-y0)||1)*(H-2*PAD);
+const pos={}; DATA.nodes.forEach(n=>pos[n.id]=[sx(n.x),sy(n.y)]);
+
+const NS="http://www.w3.org/2000/svg", svg=document.getElementById("net");
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+const gE=el("g",{}); svg.appendChild(gE);
+DATA.edges.forEach(([a,b])=>gE.appendChild(el("line",
+  {class:"edge",x1:pos[a][0],y1:pos[a][1],x2:pos[b][0],y2:pos[b][1],"stroke-opacity":.5})));
+
+// Every mark is a circle. Holding a government post is drawn as a hollow centre
+// rather than a different shape, so nothing in the graph repeats the legend's forms.
+const radius=w=>3.1+Math.sqrt(w)*2.5;
+const gN=el("g",{}); svg.appendChild(gN);
+const marks={};
+DATA.nodes.forEach(n=>{
+  const r=radius(n.w), c=el("circle",
+    {class:"mark",cx:pos[n.id][0],cy:pos[n.id][1],r:r});
+  if(n.payroll){ c.setAttribute("fill","none"); c.setAttribute("stroke-width",Math.max(1.4,r*0.40)); }
+  // both events: mousemove alone needs motion INSIDE the mark, so entering a small
+  // circle and stopping would leave the tooltip hidden.
+  c.addEventListener("mouseover",e=>tip(e,n));
+  c.addEventListener("mousemove",e=>tip(e,n));
+  c.addEventListener("mouseleave",()=>{tipEl.style.opacity=0;});
+  gN.appendChild(c); marks[n.id]=c;
+});
+
+// Size key drawn from the real weight range, at the same radii the graph uses.
+// The size and type keys live INSIDE the plot, bottom left. That quadrant holds
+// no marks (checked against the layout, not assumed), so they need no backdrop
+// and cost no vertical space. Both are drawn with the same radius() the marks
+// use, so a key can never quietly disagree with what it describes.
+(function(){
+  const ws=DATA.nodes.map(n=>n.w), lo=Math.min(...ws), hi=Math.max(...ws);
+  const mid=Math.round((lo+hi)/2), g="#8b8b85", h="#63635d";
+  const k=el("g",{"pointer-events":"none"}); svg.appendChild(k);
+  const txt=(x,y,t,fill,size,ls)=>{
+    const e=el("text",{x:x,y:y,fill:fill,"font-size":size,"letter-spacing":ls||0,
+                       "font-family":"inherit"});
+    e.textContent=t; k.appendChild(e); return e;
+  };
+  txt(14,498,"MPs PER MARK",h,9.5,1.1);
+  let cx=14;
+  [lo,mid,hi].forEach(w=>{
+    const r=radius(w); cx+=r+ (w===lo?4:10);
+    k.appendChild(el("circle",{cx:cx,cy:526,r:r,fill:"none",stroke:g,"stroke-width":1.3}));
+    txt(cx,552,String(w),g,10.5).setAttribute("text-anchor","middle");
+    cx+=r;
+  });
+  txt(14,588,"MARK TYPE",h,9.5,1.1);
+  const r6=radius(6);
+  k.appendChild(el("circle",{cx:14+r6,cy:606,r:r6,fill:g}));
+  txt(14+r6*2+10,610,"Backbencher",g,11.5);
+  k.appendChild(el("circle",{cx:14+r6,cy:634,r:r6,fill:"none",stroke:g,
+                             "stroke-width":Math.max(1.4,r6*0.4)}));
+  txt(14+r6*2+10,638,"Holds a government post",g,11.5);
+})();
+
+const tabsEl=document.getElementById("tabs");
+DATA.tabs.forEach((t,i)=>{
+  const b=document.createElement("button");
+  b.className="tab"; b.setAttribute("role","tab"); b.setAttribute("aria-selected",i===0);
+  b.textContent=t.label;
+  b.onclick=()=>show(i); tabsEl.appendChild(b);
+});
+
+function show(i){
+  active=i;
+  const t=DATA.tabs[i];
+  [...tabsEl.children].forEach((b,j)=>b.setAttribute("aria-selected",j===i));
+  document.getElementById("social").textContent=t.social;
+
+  const cnt={back:0,silent:0,exit:0};
+  DATA.nodes.forEach(n=>{
+    const st=t.answer[n.id].state; cnt[st]++;
+    const m=marks[n.id];
+    if(n.payroll) m.setAttribute("stroke",COL[st]); else m.setAttribute("fill",COL[st]);
+  });
+
+  // The share is WEIGHTED and the node count is not, and they disagree by ~11pp,
+  // because a persona stands for anywhere from 1 to 19 real MPs. Counting dots
+  // overstates whichever position the small clusters happen to hold, so the share
+  // leads and the node count is shown beneath it as the secondary figure.
+  document.getElementById("legend").innerHTML=ORDER.map(s=>
+    `<div class="row"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
+       <circle cx="6.5" cy="6.5" r="5.5" fill="${RAW[s]}"/></svg>
+     <span class="lab">${NAME[s]}<em>${cnt[s]} of ${DATA.nodes.length} personas</em></span>
+     <span class="val">${pct(t.share.all[s])}</span></div>`).join("");
+
+  document.getElementById("bars").innerHTML=
+    [["Simulated panel",t.share.all],["Observed, real 405 MPs",DATA.observed.all]].map(function(d){
+      return `<div class="b"><div class="cap"><span class="who">${d[0]}</span>
+        <span class="fig">${pct(d[1].back)} backs &middot; ${pct(d[1].silent)} silent &middot; ${pct(d[1].exit)} exit</span></div>
+        <div class="track">${ORDER.map(s=>
+          `<i style="background:${RAW[s]};width:${(d[1][s]*100).toFixed(2)}%"></i>`).join("")}</div></div>`;
+    }).join("");
+
+  const rows=[["all","Whole panel"],["backbench","Backbench"],["payroll","Payroll"]];
+  document.getElementById("gtable").innerHTML=
+    "<tr><th>Group</th><th>Backs</th><th>Silent</th><th>Exit</th><th>Acc.</th></tr>"+
+    rows.map(function(r){
+      const s=t.share[r[0]], o=DATA.observed[r[0]];
+      return `<tr><td>${r[1]}</td><td>${pct(s.back)}</td><td>${pct(s.silent)}</td>
+              <td>${pct(s.exit)}</td><td class="acc">${t.tvd[r[0]].toFixed(3)}</td></tr>
+              <tr class="obs"><td>&nbsp;&nbsp;observed</td><td>${pct(o.back)}</td>
+              <td>${pct(o.silent)}</td><td>${pct(o.exit)}</td><td>n/a</td></tr>`;
+    }).join("");
+}
+
+const tipEl=document.getElementById("tip");
+function tip(e,n){
+  const a=DATA.tabs[active].answer[n.id];
+  const chips=[
+    n.payroll?"Payroll":"Backbench",
+    n.intake==="2024"?"2024 intake":"Pre-2024",
+    n.runner_up?n.runner_up.replace(" Party","")+"-facing":null,
+    n.majority==null?null:(n.majority<15?"Marginal ":"Safe ")+n.majority.toFixed(0)+"%",
+    n.risk==null?null:(n.risk>=.5?"Seat at risk":"Seat holding"),
+    n.rebellion==null?null:"Rebels "+(n.rebellion*100).toFixed(0)+"%",
+  ].filter(Boolean);
+  const det=[["Backs the leader",a.p[0].toFixed(3)],
+             ["Says nothing",a.p[2].toFixed(3)],
+             ["Says leader should go",a.p[1]<1e-3?a.p[1].toExponential(1):a.p[1].toFixed(3)],
+             ["Projected Labour vote",n.proj_lab==null?"n/a":n.proj_lab.toFixed(0)+"%"],
+             ["Projected winner",n.proj_win||"Labour holds"]];
+  tipEl.innerHTML=
+    `<div class="hd"><div class="badge" style="background:${RAW[a.state]}">${n.id}</div>
+       <div><div class="nm">Persona ${n.id}</div><div class="rl">${NAME[a.state]}</div></div></div>
+     <div class="chips">${chips.map(c=>`<span class="chip">${c}</span>`).join("")}</div>
+     <dl>${det.map(d=>`<dt>${d[0]}</dt><dd>${d[1]}</dd>`).join("")}</dl>`;
+  tipEl.style.opacity=1;
+  const b=tipEl.getBoundingClientRect();
+  tipEl.style.left=Math.min(e.clientX+16,innerWidth-b.width-14)+"px";
+  tipEl.style.top=Math.min(e.clientY+16,innerHeight-b.height-14)+"px";
+}
+
+// Both notes compute their figures from the payload, so the prose cannot drift from the data.
+// Figures are computed from the payload so the text cannot drift from the data.
+const T0=DATA.tabs[0], TL=DATA.tabs[DATA.tabs.length-1];
+const bestPay=DATA.tabs.reduce((a,t)=>t.tvd.payroll>a.tvd.payroll?t:a);
+const exitTotal=DATA.tabs.reduce((a,t)=>
+  a+DATA.nodes.filter(n=>t.answer[n.id].state==="exit").length,0);
+const cl=DATA.clustering||{};
+const comms=cl.communities||[];
+const topComm=comms[0], quiet=comms.filter(c=>c.exit===0).length;
+
+document.getElementById("punch1").innerHTML=
+  `<b>What moves.</b> The personas with government jobs go quiet, which is what really happened.
+   <span class="k">${pct(DATA.observed.payroll.silent)}</span> of real ministers said nothing,
+   because they have to resign before criticising the leader. Adding that one sentence took their
+   score from ${T0.tvd.payroll.toFixed(3)} to ${bestPay.tvd.payroll.toFixed(3)}, the biggest
+   single improvement in the project. It is not perfect. In the last view it drops back to
+   ${TL.tvd.payroll.toFixed(3)}, where enough colleagues have moved that they start speaking
+   anyway.`;
+
+document.getElementById("punch2").innerHTML=
+  `<b>What it takes.</b> Two things have to be true at once before anyone breaks ranks. The
+   persona has no government job to lose, and it can see that a hundred colleagues have already
+   moved. Neither on its own does anything. Together,
+   <span class="k">${exitTotal} of ${DATA.nodes.length*DATA.tabs.length}</span> answers say the
+   leader should go, all of them backbenchers. That is ${pct(TL.share.backbench.exit)} of that
+   group, against ${pct(DATA.observed.backbench.exit)} in reality. Too low, but the right order,
+   and reached without telling the personas what to think. The ones with government jobs stay at
+   ${pct(TL.share.payroll.exit)} throughout.`;
+
+if(topComm){
+  document.getElementById("punch3").innerHTML=
+    `<b>Where it happens.</b> The personas who break ranks are not spread evenly. They cluster in
+     one part of the network, <span class="k">${(topComm.rate*100).toFixed(0)}%</span> in one group
+     and none at all in ${quiet} others. Nobody told the personas that groups existed. The lines
+     come from how the real MPs behind them voted together, so the grouping is something the
+     panel produced rather than something I built. A survey cannot show you this, because the
+     people answering it cannot see each other.`;
+}
+
+show(0);
+addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight")show(Math.min(active+1,DATA.tabs.length-1));
+  if(e.key==="ArrowLeft")show(Math.max(active-1,0));
+});
+</script>
+</body>
+</html>
